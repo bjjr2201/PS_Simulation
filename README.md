@@ -12,4 +12,4 @@ Features To be Added:\
     SDK Real-time Database\
     Cloud File Storage\
     GUI Interface\
-    Email Messenger\
+    Email Messenger
