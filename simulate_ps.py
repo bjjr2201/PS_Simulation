@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Sep 10 12:03:59 2022
+Created on Sat Sep 10 12:03:59 2022.
+
 Features:
     Data visualization
     SQL Database
     File I/O
-    Real-time Database
-    Cloud Storage
 @author: bjord
 """
 import time
@@ -14,7 +13,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import pandas as pd
+import pyrebase
 import random
 import sqlite3
 
@@ -29,11 +28,43 @@ sn = serial.split(":") # ['S/N', '10M5470B']
 firmware = ps_id[3]    # ['2U5K:5.1.1-LAN:2.1']
 mac = ps_id[4]         # ['00:19:F9:27:D3:B0']
 
+
+
 ##################
 # Database Setup #
 ##################
 
-# create database file if it does not exist and open it in append mode
+
+# Create Cloud-based Real-time Database (Firebase)
+config = {
+  "apiKey": "AIzaSyC7yO0z6bkM5eKcmmN9rG1rZ3pVTH_ei18",
+  "authDomain": "testdb-1d751.firebaseapp.com",
+  "projectId": "testdb-1d751",
+  "storageBucket": "testdb-1d751.appspot.com",
+  "databaseURL": "https://testdb-1d751-default-rtdb.firebaseio.com/",
+  "messagingSenderId": "461966469635",
+  "appId": "1:461966469635:web:6c586cbed67cfa8cbffc36",
+  "measurementId": "G-B6ZC05VVVR"
+}
+
+firebase = pyrebase.initialize_app(config)
+database = firebase.database()
+firebase_storage = pyrebase.initialize_app(config)
+storage = firebase_storage.storage()
+
+data ={
+       "BRAND": f"{brand}",
+       "MODEL": f"{model}",
+       "SERIAL": f"{serial}",
+       "FIRMWARE": f"{firmware}",
+       "MAC": f"{mac}"
+       }
+print("Cloud-based table was successfully uploaded to Google Firebase")
+
+# create data
+database.push(data)
+
+# create local database file if it does not exist and open it in append mode
 open('hbts_quads.db','a+')
 conn = sqlite3.connect('hbts_quads.db')
 print("Opened database successfully")
@@ -131,19 +162,9 @@ for i in np.arange(0, curr_out, c_bit):
         Time.append(current_time)
         # dramatically display loop results
         time.sleep(0.0002)
-        # create and display dataframe
-        data = [
-                {'Date':Date,
-                  'Time':Time,
-                  'Volts_Out (V)':Output_Voltage,
-                  'Current_Out (A)':Set_Current,
-                  'Current_Read (A)':Read_Current, 
-                  'Host_IP':Host_IP}
-        ]
-        # df = pd.DataFrame(data)
-        print(f'{current_date},{current_time},{volt_out:.3f},{i:.3f},{dcct:.3},{host_IP}')
         # append contents to .csv file
         f.write(f'{current_date},{current_time},{volt_out:.3f},{i:.3f},{dcct:.3f},{host_IP}\n')
+        print(f'{current_date},{current_time},{volt_out:.3f},{i:.3f},{dcct:.3},{host_IP}')
 for i in np.arange(curr_out, 0, -c_bit):
         Host_IP.append(host_IP)
         current_date = datetime.now().strftime('%y-%m-%d')
@@ -161,22 +182,10 @@ for i in np.arange(curr_out, 0, -c_bit):
         time.sleep(0.0002)
         # append contents to .csv file
         f.write(f'{current_date},{current_time},{volt_out:.3f},{i:.3f},{dcct:.3f},{host_IP}\n')
-        # create and display dataframe
-        data = [
-            {'Date':Date,
-             'Time':Time,
-             'Volts_Out (V)':Output_Voltage,
-             'Current_Out (A)':Set_Current,
-             'Current_Read (A)':Read_Current, 
-             'Host_IP':Host_IP}
-        ]
-        df = pd.DataFrame(data)
-        print(f'{current_date},{current_time},{volt_out:.3f},{i:.3f},{dcct:.3},{host_IP}')
 f.close()
 
-# printing dataframe
-print(df)
-time.sleep(5)
+# uploading .csv file to Firestore
+storage.child(f'{brand}/{model}/{sn[1]}/{now}/{now}.csv').put(f'{brand}/{model}/{sn[1]}/{now}/{now}.csv')
 
 # Generate plot
 print("\nGenerating lineplots...")
@@ -188,17 +197,21 @@ print("Displaying plots...\n")
 ##################
 
 # Output Voltage
+f = open(f'{brand}\{model}\{sn[1]}\{now}\Output_Voltage.png',"w")
 fig, ax1 = plt.subplots()
 ax1.plot(Set_Current,Output_Voltage,'b--')
 ax1.set(xlabel='Volts (V)', ylabel='Current (A)', 
         title=f"Output Voltage\nGenerated: {current_date} {current_time[:8]}")
 ax1.grid()
 fig.savefig("Output_Voltage.png")
-f.close()
 plt.show()
+f.close()
+
+# uploading images to Firestore
+storage.child(f"{brand}/{model}/{sn[1]}/{now}/Output_Voltage.png").put("Output_Voltage.png")
 
 # Current Setpoint
-f = open(f'{brand}\{model}\{sn[1]}\{now}\Current Setpoint.png',"w")
+f = open(f'{brand}\{model}\{sn[1]}\{now}\Current_Setpoint.png',"w")
 fig, ax2 = plt.subplots()
 ax2.plot(Output_Voltage, Set_Current,'y--')
 ax2.set(xlabel='Volts (V)', ylabel='Current (A)', 
@@ -208,8 +221,12 @@ fig.savefig("Current_Setpoint.png")
 plt.show()
 f.close()
 
+# uploading images to Firestore
+storage.child(f"{brand}/{model}/{sn[1]}/{now}/Current_SetPoint.png").put("Current_SetPoint.png")
+
+
 # Current Readback
-f = open(f'{brand}\{model}\{sn[1]}\{now}\Current Readback.png',"w")
+f = open(f'{brand}\{model}\{sn[1]}\{now}\Current_Readback.png',"w")
 fig, ax3 = plt.subplots()
 ax3.plot(Output_Voltage, Read_Current,'g')
 ax3.set(xlabel='Volts (V)', ylabel='Current (A)',  
@@ -218,6 +235,9 @@ ax3.grid()
 fig.savefig("Current_Readback.png")
 plt.show()
 f.close()
+
+# uploading images to Firestore
+storage.child(f"{brand}/{model}/{sn[1]}/{now}/Current_Readback.png").put("Current_Readback.png")
 
 # Load Resistance
 f = open(f'{brand}\{model}\{sn[1]}\{now}\Load_Resistance.png',"w")
@@ -230,8 +250,11 @@ fig.savefig("Load_Resistance.png")
 plt.show()
 f.close()
 
+# uploading images to Firestore
+storage.child(f"{brand}/{model}/{sn[1]}/{now}/Load_Resistance.png").put("Load_Resistance.png")
+
 # vertically stacked plots
-f = open(f'{brand}\{model}\{sn[1]}\{now}\Output Summary.png',"w")
+f = open(f'{brand}\{model}\{sn[1]}\{now}\Output_Summary.png',"w")
 fig, axs = plt.subplots(2,2, tight_layout=True)
 axs[0,0].plot(Set_Current,Output_Voltage)
 axs[0,0].set_title('Output_Voltage')
@@ -259,9 +282,11 @@ axs[1,1].grid(color = 'gray', linestyle = '--', linewidth = 0.5)
 fig.savefig("Output_Summary.png")
 f.close()
 
-print("The .png files are being saved in two locations.\n")
-print("The files are b")
+# uploading images to Firestore
+storage.child(f"{brand}/{model}/{sn[1]}/{now}/Output_Summary.png").put("Output_Summary.png")
 
+# Known Issues
+print("Known Issues:\n\t\t\tN/A\n")
 
 
 def main():
