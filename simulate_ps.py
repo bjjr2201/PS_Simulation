@@ -2,10 +2,15 @@
 """
 Created on Sat Sep 10 12:03:59 2022.
 
+Automated Standard Acceptance Test (SAT) of a simulated commercial power supply.
+
 Features:
+    .csv file data storage
     Data visualization
     SQL Database
     File I/O
+    Real-time Database
+    Cloud File Storage
 @author: bjord
 """
 import time
