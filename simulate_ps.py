@@ -37,14 +37,14 @@ mac = ps_id[4]         # ['00:19:F9:27:D3:B0']
 
 # Create Cloud-based Real-time Database (Firebase)
 config = {
-  "apiKey": "AIzaSyC7yO0z6bkM5eKcmmN9rG1rZ3pVTH_ei18",
-  "authDomain": "testdb-1d751.firebaseapp.com",
-  "projectId": "testdb-1d751",
-  "storageBucket": "testdb-1d751.appspot.com",
-  "databaseURL": "https://testdb-1d751-default-rtdb.firebaseio.com/",
-  "messagingSenderId": "461966469635",
-  "appId": "1:461966469635:web:6c586cbed67cfa8cbffc36",
-  "measurementId": "G-B6ZC05VVVR"
+  "apiKey": "",
+  "authDomain": "",
+  "projectId": "",
+  "storageBucket": "",
+  "databaseURL": "",
+  "messagingSenderId": "",
+  "appId": "",
+  "measurementId": ""
 }
 
 firebase = pyrebase.initialize_app(config)
