@@ -3,13 +3,13 @@ Automate Standard Acceptance Test (SAT) of a simulated power supply that incorpo
 
 Features:\
 Parses power supply ID number\
-Creates a database for inventory tracking\
-Tracks PS voltage & current iteraing over 16-bits\
+Local database for inventory tracking\
+Tracks PS voltage & current iterating over 16-bits\
 Creates .csv files for logging data\
-Plots data for visualization
+Plots data for visualization\
+Real-time cloud ☁️ database (Google Firebase)\
+Cloud-based ☁️ file storage (Google Firestone)
 
 Features To be Added:\
-    SDK Real-time Database\
-    Cloud File Storage\
     GUI Interface\
-    Email Messenger
+    Email or text notifications
